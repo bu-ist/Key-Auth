@@ -44,6 +44,10 @@ class JSON_Key_Auth {
 		$user_id = self::findUserIdByKey( $_SERVER['HTTP_X_API_KEY'] );
 		$user_secret = get_user_meta( $user_id, 'json_shared_secret', true);
 
+		if ( ! is_numeric( $user_id ) and ! $user_secret ) {
+			return false;
+		}
+
 		// Check for the proper HTTP Parameters
 		// Note: Remember to sort the keys when generating the json encoding
 		$signature_args = array(
