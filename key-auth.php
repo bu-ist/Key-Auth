@@ -73,7 +73,8 @@ class JSON_Key_Auth {
 	 * @return string
 	 */
 	public static function generateSignature( $args, $secret ) {
-		return md5( json_encode( $args ) . $secret );
+		$algo = apply_filters( 'key_auth_signature_algo', 'sha256' );
+		return hash( $algo, json_encode( $args ) . $secret );
 	}
 
 	/**
