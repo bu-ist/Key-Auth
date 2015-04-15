@@ -38,6 +38,7 @@ class JSON_Key_Auth {
 		$request_timestamp = intval( $_SERVER['HTTP_X_API_TIMESTAMP'] );
 		$reasonable_threshold = apply_filters( 'key_auth_reasonable_threshold', 5 * MINUTE_IN_SECONDS );
 		if ( abs( $timestamp - $request_timestamp ) > $reasonable_threshold ) {
+			self::setHeader( 'FAIL timestamp' );
 			return false;
 		}
 
@@ -45,6 +46,7 @@ class JSON_Key_Auth {
 		$user_secret = get_user_meta( $user_id, 'json_shared_secret', true);
 
 		if ( ! is_numeric( $user_id ) and ! $user_secret ) {
+			self::setHeader( 'FAIL key/secret' );
 			return false;
 		}
 
