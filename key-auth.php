@@ -48,8 +48,11 @@ class JSON_Key_Auth {
 		$signature = $_SERVER['HTTP_X_API_SIGNATURE'];
 
 		if ( $signature_gen != $signature ) {
+			self::setHeader( 'FAIL signature' );
 			return false;
 		}
+
+		self::setHeader( 'OK ' . $user_id );
 
 		return $user_id;
 	}
@@ -88,6 +91,17 @@ class JSON_Key_Auth {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Sets the response headers
+	 * 
+	 * @param  string $value
+	 * @param  string $key
+	 * @return null
+	 */
+	public static function setHeader( $value, $key='X-KEY-AUTH' ) {
+		header( sprintf( '%s: %s', strtoupper( $key ), $value ) );
 	}
 }
 
