@@ -45,11 +45,14 @@ class JSON_Key_Auth {
 		$user_secret = get_user_meta( $user_id, 'json_shared_secret', true);
 
 		// Check for the proper HTTP Parameters
+		// Note: Remember to sort the keys when generating the json encoding
 		$signature_args = array(
 			'api_key' => $_SERVER['HTTP_X_API_KEY'],
-			'timestamp' => $_SERVER['HTTP_X_API_TIMESTAMP'],
+			'ip' => $_SERVER['REMOTE_ADDR'],
 			'request_method' => $_SERVER['REQUEST_METHOD'],
+			'request_post' => $_POST,
 			'request_uri' => $_SERVER['REQUEST_URI'],
+			'timestamp' => $request_timestamp,
 		);
 
 		$signature_gen = self::generateSignature( $signature_args, $user_secret );
