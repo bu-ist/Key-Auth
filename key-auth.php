@@ -33,15 +33,30 @@ class JSON_Key_Auth {
 			return $user;
 		}
 
+		// Ensure the requested timestamp is within a reasonable time
+		$timestamp = time();
+		$request_timestamp = intval( $_SERVER['HTTP_X_API_TIMESTAMP'] );
+		$reasonable_threshold = apply_filters( 'key_auth_reasonable_threshold', 5 * MINUTE_IN_SECONDS );
+		if ( abs( $timestamp - $request_timestamp ) > $reasonable_threshold ) {
+			return false;
+		}
+
 		$user_id = self::findUserIdByKey( $_SERVER['HTTP_X_API_KEY'] );
 		$user_secret = get_user_meta( $user_id, 'json_shared_secret', true);
 
+		if ( ! is_numeric( $user_id ) and ! $user_secret ) {
+			return false;
+		}
+
 		// Check for the proper HTTP Parameters
+		// Note: Remember to sort the keys when generating the json encoding
 		$signature_args = array(
 			'api_key' => $_SERVER['HTTP_X_API_KEY'],
-			'timestamp' => $_SERVER['HTTP_X_API_TIMESTAMP'],
+			'ip' => $_SERVER['REMOTE_ADDR'],
 			'request_method' => $_SERVER['REQUEST_METHOD'],
+			'request_post' => $_POST,
 			'request_uri' => $_SERVER['REQUEST_URI'],
+			'timestamp' => $request_timestamp,
 		);
 
 		$signature_gen = self::generateSignature( $signature_args, $user_secret );
@@ -65,7 +80,8 @@ class JSON_Key_Auth {
 	 * @return string
 	 */
 	public static function generateSignature( $args, $secret ) {
-		return md5( json_encode( $args ) . $secret );
+		$algo = apply_filters( 'key_auth_signature_algo', 'sha256' );
+		return hash( $algo, json_encode( $args ) . $secret );
 	}
 
 	/**
