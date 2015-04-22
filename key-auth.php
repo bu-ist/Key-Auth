@@ -8,6 +8,13 @@
  * Plugin URI: https://github.com/WP-API/Key-Auth
  */
 
+
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	include_once( dirname( __FILE__ ) . '/lib/class-wp-json-key-auth-cli.php' );
+
+	WP_CLI::add_command( 'key-auth', 'WP_JSON_Key_Auth_CLI' );
+}
+
 /**
  * Checks the HTTP request and authenticates a user using an API key and shared secret.
  *
@@ -15,6 +22,8 @@
  */
 
 class JSON_Key_Auth {
+	const CONSUMER_KEY_LENGTH = 12;
+	const CONSUMER_SECRET_LENGTH = 48;
 
 	/**
 	 * The primary handler for user authentication.
@@ -120,6 +129,46 @@ class JSON_Key_Auth {
 	 */
 	public static function setHeader( $value, $key='X-KEY-AUTH' ) {
 		header( sprintf( '%s: %s', strtoupper( $key ), $value ) );
+	}
+
+	/**
+	 * Adds key/secret for the user
+	 * @param string $user   user_login for which the key auth will be enabled
+	 * @param array $params With key/secret key-value pairs or empty
+	 * @return array|false $data if successful returns array with ID/key/secret, else false
+	 */
+	public static function addKeyAuthForUser( $user, $params ) {
+
+		// generate key/secret
+		$meta = array(
+			'key'    => wp_generate_password( self::CONSUMER_KEY_LENGTH, false ),
+			'secret' => wp_generate_password( self::CONSUMER_SECRET_LENGTH, false ),
+		);
+
+		// allow params to override key/secret
+		if ( empty( $params ) ) {
+			$params = array();
+		}
+		$meta = array_merge( $meta, $params );
+
+		// ensure the requested user exists
+		$user = get_user_by( 'login', $user );
+		if ( ! $user ) {
+			return false;
+		}
+
+		// @todo: handle overwriting previously set key/secret
+		// $user_meta = get_user_meta( $user->ID, 'json_api_key', true );
+		// if ( $user_meta ) {
+		// 	return array( 'success': false, 'msg': 'User has API Key and Secret already.' );
+		// }
+
+		// save key/secret to usermeta
+		update_user_meta( $user->ID, 'json_api_key', $meta['key'] );
+		update_user_meta( $user->ID, 'json_shared_secret', $meta['secret'] );
+		$data = array_merge( array( 'ID' => $user->ID ), $meta );
+
+		return $data;
 	}
 }
 
