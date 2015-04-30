@@ -8,6 +8,14 @@ Access your WordPress site's data through an easy-to-use HTTP REST API.
 
 Allows Key Authentication access to the WordPress JSON API.
 
+# WP CLI
+
+Adds Key Auth key/secret for a user.
+
+```
+wp key-auth username [--key=strSIZEis12C] [--secret=strSIZEis48CstrSIZEis48CstrSIZEis48CstrSIZEis48C]
+```
+
 ## Installation
 
 Drop this directory in and activate it. You need to be using pretty permalinks
