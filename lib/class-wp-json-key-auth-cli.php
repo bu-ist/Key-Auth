@@ -27,8 +27,6 @@ class WP_JSON_Key_Auth_CLI extends WP_CLI_Command {
 
 		$user = $_[0];
 		$result = JSON_Key_Auth::addKeyAuthForUser( $user, $args );
-		var_dump($_);
-		var_dump($args);
 		if ( $result === false ) {
 			WP_CLI::error( sprintf( 'Failed to create Key Auth for user %s',     $user ) );
 		}
