@@ -18,6 +18,8 @@ class WP_TestKeyAuth extends WP_UnitTestCase {
 
 		$this->usersecret = 'fdsa4321';
 
+		$_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
 		update_user_meta( $this->user, 'json_api_key', $this->userapikey );
 		update_user_meta( $this->user, 'json_shared_secret', $this->usersecret );
 
@@ -36,11 +38,15 @@ class WP_TestKeyAuth extends WP_UnitTestCase {
 	public function test_authentication_success() {
 		$signature_args = array(
 			'api_key' => $this->userapikey,
-			'timestamp' => 1234567,
+			'ip' => $_SERVER['REMOTE_ADDR'],
 			'request_method' => 'GET',
+			'request_post' => array(),
 			'request_uri' => 'example.org/wp-json',
+			'timestamp' => time(),
 		);
-		$sent_signature = md5( json_encode( $signature_args ) . $this->usersecret );
+
+		$algo = apply_filters( 'key_auth_signature_algo', 'sha256' );
+		$sent_signature = hash( $algo, json_encode( $signature_args ) . $this->usersecret );
 
 		$this->assertEquals( $sent_signature, JSON_Key_Auth::generateSignature( $signature_args, $this->usersecret ) );
 
